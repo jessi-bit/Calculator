@@ -12,7 +12,7 @@ public class Status implements Observer<IOperation> {
 	private ArrayList <String> buffers;
 	private ArrayList <OperationTypes> operations;
 	private String currentDisplay;
-	private boolean flag = true;
+	private boolean isNotResult = true;
 	
 	public Status(Subject <IDisplayOperation> subjectView) {
 		this.buffer = ""; 
@@ -32,30 +32,29 @@ public class Status implements Observer<IOperation> {
 			this.currentDisplay = inserted;
 			this.buffer = inserted;
 		} else {                                  
-			this.currentDisplay += inserted;   	
+			this.currentDisplay += inserted;  
 			this.buffer += inserted;
-		}
-		
+		}		
 	}
 	
 	public void operatorInserted(OperationTypes operator) {
 		this.currentDisplay += this.displayOperationSymbol(operator);
-		if (this.flag) {
+		if (this.isNotResult && ! this.buffer.equals("")) {
 			this.buffers.add(this.buffer); 
 		} else {
-			this.flag = true;
+			this.isNotResult = true;
 		}
 		this.buffer = "";
 		this.operations.add(operator);
 		System.out.println(this.buffers);
-		System.out.println(this.buffers.size());
+		System.out.println(this.buffers.size());		
 	}
 	
 	public String displayOperationSymbol(OperationTypes operation) {
 		switch(operation) { 
 		case SUM : return " + ";  //this format is useful to pay attention to for method lastInsertedIsCipher()
 		case SUB : return " - ";
-		case MUL : return " X ";
+		case MUL : return " x ";
 		case DIV : return " / ";
 		default: return null;
 		}
@@ -71,18 +70,24 @@ public class Status implements Observer<IOperation> {
 		return j;
 	}
 	
-	public void execute() {
-		this.executeMulDiv();
-		this.executeSumSub();
-		this.currentDisplay = ""+this.buffers.get(0);
-		this.flag = false;
-		
-		this.operations = new ArrayList<OperationTypes>();
-		System.out.println(this.buffers);
-		System.out.println(this.operations);
+	public void execute() throws Exception  {
+		try {
+			this.executeMulDiv();
+			this.executeSumSub();
+			this.currentDisplay = ""+this.buffers.get(0);
+			this.isNotResult = false;
+
+			this.operations = new ArrayList<OperationTypes>();
+			System.out.println(this.buffers);
+			System.out.println(this.operations);
+		} catch (Exception e) {
+			this.currentDisplay = "Digit Error! Press AC to reset";
+			System.out.println(e.getMessage());
+			//e.printStackTrace();
+		}
 	}
 
-	public void executeMulDiv() {
+	public void executeMulDiv() throws Exception {
 		double result = 0;
 		int n = this.countMulDivOperators();
 		int i= 0; 
@@ -105,15 +110,16 @@ public class Status implements Observer<IOperation> {
 				}
 				this.buffers.remove(i+1);
 				this.buffers.set(i, ""+result);
-				
+
 				this.buffers.remove(Objects.isNull(this.buffers));//the next operation in a list is made on the total result and not only on the last cipher inserted.
 				this.operations.remove(i);
 			}
 			else {i++;}
 		}
+
 	}
-	
-	public void executeSumSub() {
+
+	public void executeSumSub() throws Exception {
 		double result = 0;
 		for(int i = 0; i < this.operations.size()-1; i++) { //this.operations.Size(last) = "="; Exception e
 			switch(this.operations.get(i)) {
@@ -130,27 +136,26 @@ public class Status implements Observer<IOperation> {
 
 			this.buffers.remove(1);
 			this.buffers.set(0, ""+result);
+
 		}
+
 	}
-	
+
 	public void clear() {
-		//this.operation = null;
-		//this.buffer = "";
-		this.flag = true;
+		this.isNotResult = true;
 		this.buffers = new ArrayList<String>();
 		this.operations = new ArrayList<OperationTypes>();
 		this.currentDisplay = "0";
 	}
 	
 	public void canc() {
-		if (this.flag) {
+		if (this.isNotResult) {
 			if(this.lastInsertedIsCipher()) {
 				this.currentDisplay = this.currentDisplay.substring(0, this.currentDisplay.length()-1);
 				this.buffer = this.buffer.substring(0, this.buffer.length()-1);
 			} else {
 				this.currentDisplay = this.currentDisplay.substring(0, this.currentDisplay.length()-3);
 				this.operations.remove(this.operations.size()-1);
-				this.flag = false;
 			}			
 		}
 	}
@@ -166,9 +171,7 @@ public class Status implements Observer<IOperation> {
 		operation.actionPerformed(this);
 		this.subjectView.update(new DisplayOperation(this.currentDisplay, operation.getDim(this)));
 	}
-	
-	
-	
+		
 }
 
 //5x5x5/25 + 4x2

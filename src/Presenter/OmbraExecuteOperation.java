@@ -9,9 +9,14 @@ public class OmbraExecuteOperation extends Operation{
 		super();
 	}
 	@Override
-	public void actionPerformed(Status status) { 
+	public void actionPerformed(Status status)   { 
 		status.operatorInserted(OperationTypes.EQUAL); 
-		status.execute();
+		try {
+			status.execute();
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		
 		//this.setLabel(status, this.bigDim);
 	}
 	
