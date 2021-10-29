@@ -1,6 +1,6 @@
 
 /**
- * @author JessicaVecchia and AndreiBlindu
+ * @author JessicaVecchia 
  *
  */
 
